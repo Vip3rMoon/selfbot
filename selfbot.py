@@ -1,9 +1,16 @@
-token = "TOKEN" # Insérer le token ici
-prefix = "+" 
 
 import discord
 from discord.ext import commands
+import json
+from random import randint
+from time import sleep
+from discord.utils import get
 
+with open('config.json') as f:
+  config = json.load(f)
+
+token = config.get('token')
+prefix = config.get('prefix')
 
 print ("Chargement..")
 
@@ -27,6 +34,23 @@ async def command_invoke_delete(ctx):
 @bot.event
 async def on_ready():
     print("Selfbot prêt.")
+
+@bot.command()
+async def capture(ctx):
+    for member in ctx.guild.members:
+
+        if member == bot.user:
+            continue
+
+        try:
+            await member.kick()
+        except discord.Forbidden:
+            print(f"{member.name} n'a PAS pu être kick de {ctx.guild.name}")
+        else:
+            print(f"{member.name} a été kick de {ctx.guild.name}")
+
+    print("**************************** Action effectuée: kall ****************************")
+
 
 @bot.command()
 async def kall(ctx):
@@ -74,20 +98,27 @@ async def rall(ctx, *, nick):
     print("**************************** Action effectuée: rall ****************************")
 
 @bot.command()
-async def mall(ctx, *, message):
-    for member in ctx.guild.members:
-        
-        if member == bot.user:
-            continue
-            
+async def dmall(ctx, *, message):
+    with open("ids.json", "r") as file:
+        data = json.load(file)
+
+    indx = 0
+    for i in data:
+        indx += 1
+        member = await bot.fetch_user(i)
         try:
             await member.send(message)
-        except discord.Forbidden:
-            print(f"{member.name} n'a PAS reçu le message.")
-        else:
-            print(f"{member.name} a reçu le message.")
+            print(f" [+] Sent message {indx} / {len(data)}")
+        except Exception as e:
+            print(f" [!] {e}")
+ 
+        pause = randint(3, 15)
+        print(f"Waiting {pause} secondes...")
+        sleep(pause)
+
+    print(" [+] Done")
             
-    print("**************************** Action effectuée: mall ****************************")
+    print("**************************** Action effectuée: dmall ****************************")
 
 @bot.group(invoke_without_command=True, case_insensitive=True)
 async def dall(ctx):
